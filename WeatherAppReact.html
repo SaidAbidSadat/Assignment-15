@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WeatherSphere</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        /* Base Styles */
+        :root {
+            --primary-color: #3a86ff;
+            --secondary-color: #8338ec;
+            --accent-color: #ff006e;
+            --light-color: #f8f9fa;
+            --dark-color: #212529;
+            --success-color: #28a745;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: var(--light-color);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        /* App Container */
+        .weather-app {
+            width: 100%;
+            max-width: 480px;
+            background: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(12px);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Header */
+        .app-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .app-title {
+            font-size: 1.6rem;
+            font-weight: 600;
+            color: white;
+        }
+
+        .refresh-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: white;
+        }
+
+        .refresh-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: rotate(180deg);
+        }
+
+        /* Search Section */
+        .search-container {
+            display: flex;
+            margin-bottom: 25px;
+            gap: 10px;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 50px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .search-input::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .search-input:focus {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .search-btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 50px;
+            background: rgba(255, 255, 255, 0.3);
+            color: white;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .search-btn:hover {
+            background: rgba(255, 255, 255, 0.4);
+        }
+
+        /* Current Weather */
+        .current-weather {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .location {
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .date-time {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            margin-bottom: 20px;
+        }
+
+        .weather-icon {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto;
+            display: block;
+        }
+
+        .temperature {
+            font-size: 4rem;
+            font-weight: 700;
+            margin: 10px 0;
+            position: relative;
+        }
+
+        .temperature span {
+            position: absolute;
+            font-size: 1.5rem;
+            top: 10px;
+        }
+
+        .weather-description {
+            font-size: 1.2rem;
+            text-transform: capitalize;
+            margin-bottom: 20px;
+        }
+
+        .weather-details {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .detail-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .detail-icon {
+            font-size: 1.2rem;
+            margin-bottom: 8px;
+        }
+
+        .detail-label {
+            font-size: 0.8rem;
+            opacity: 0.7;
+            margin-bottom: 5px;
+        }
+
+        .detail-value {
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        /* Forecast */
+        .forecast-container {
+            margin-top: 30px;
+        }
+
+        .section-title {
+            font-size: 1.2rem;
+            font-weight: 500;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .forecast-list {
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            padding-bottom: 10px;
+        }
+
+        .forecast-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 12px;
+            border-radius: 12px;
+            min-width: 80px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .forecast-item:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-3px);
+        }
+
+        .forecast-time {
+            font-size: 0.8rem;
+            margin-bottom: 5px;
+        }
+
+        .forecast-icon {
+            width: 40px;
+            height: 40px;
+            margin: 5px 0;
+        }
+
+        .forecast-temp {
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        /* Loading and Error States */
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 200px;
+            font-size: 1.2rem;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .error-message {
+            color: var(--danger-color);
+            text-align: center;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 10px;
+            font-weight: 500;
+        }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            .weather-app {
+                padding: 20px 15px;
+            }
+            
+            .search-container {
+                flex-direction: column;
+            }
+            
+            .search-btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        const WeatherApp = () => {
+            const [weatherData, setWeatherData] = useState(null);
+            const [loading, setLoading] = useState(true);
+            const [error, setError] = useState(null);
+            const [searchQuery, setSearchQuery] = useState('');
+            const [unit, setUnit] = useState('metric');
+
+            // Fetch weather data on component mount
+            useEffect(() => {
+                fetchWeatherData();
+            }, []);
+
+            const fetchWeatherData = async (query = '') => {
+                setLoading(true);
+                setError(null);
+                
+                try {
+                    let apiUrl;
+                    if (query) {
+                        apiUrl = `https://api.openweathermap.org/data/2.5/weather?q=${query}&units=${unit}&appid=a6aa145a5e5d6e045b8e8f108fb2cb7e`;
+                    } else {
+                        // Get user's location if available
+                        if (navigator.geolocation) {
+                            const position = await new Promise((resolve, reject) => {
+                                navigator.geolocation.getCurrentPosition(resolve, reject);
+                            });
+                            apiUrl = `https://api.openweathermap.org/data/2.5/weather?lat=${position.coords.latitude}&lon=${position.coords.longitude}&units=${unit}&appid=a6aa145a5e5d6e045b8e8f108fb2cb7e`;
+                        } else {
+                            apiUrl = `https://api.openweathermap.org/data/2.5/weather?q=London&units=${unit}&appid=a6aa145a5e5d6e045b8e8f108fb2cb7e`;
+                        }
+                    }
+
+                    const response = await fetch(apiUrl);
+                    const data = await response.json();
+                    
+                    if (data.cod !== 200) {
+                        throw new Error(data.message || 'Failed to fetch weather data');
+                    }
+                    
+                    // Fetch forecast data
+                    const forecastUrl = `https://api.openweathermap.org/data/2.5/forecast?q=${data.name}&units=${unit}&appid=a6aa145a5e5d6e045b8e8f108fb2cb7e`;
+                    const forecastResponse = await fetch(forecastUrl);
+                    const forecastData = await forecastResponse.json();
+                    
+                    if (forecastData.cod !== '200') {
+                        throw new Error('Failed to fetch forecast data');
+                    }
+                    
+                    setWeatherData({
+                        current: data,
+                        forecast: forecastData
+                    });
+                } catch (err) {
+                    setError(err.message);
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            const handleSearch = (e) => {
+                e.preventDefault();
+                if (searchQuery.trim()) {
+                    fetchWeatherData(searchQuery.trim());
+                }
+            };
+
+            const toggleUnit = () => {
+                const newUnit = unit === 'metric' ? 'imperial' : 'metric';
+                setUnit(newUnit);
+                fetchWeatherData(weatherData?.current.name || '');
+            };
+
+            const getWeatherIcon = (code) => {
+                // This is a simplified version - in a real app you would use proper weather icons
+                const iconMap = {
+                    '01d': '☀️',
+                    '01n': '🌙',
+                    '02d': '⛅',
+                    '02n': '⛅',
+                    '03d': '☁️',
+                    '03n': '☁️',
+                    '04d': '☁️',
+                    '04n': '☁️',
+                    '09d': '🌧️',
+                    '09n': '🌧️',
+                    '10d': '🌦️',
+                    '10n': '🌦️',
+                    '11d': '🌩️',
+                    '11n': '🌩️',
+                    '13d': '❄️',
+                    '13n': '❄️',
+                    '50d': '🌫️',
+                    '50n': '🌫️'
+                };
+                return iconMap[code] || '☀️';
+            };
+
+            const formatDate = (timestamp) => {
+                const date = new Date(timestamp * 1000);
+                return date.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
+            };
+
+            const formatTime = (timestamp) => {
+                const date = new Date(timestamp * 1000);
+                return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+            };
+
+            return (
+                <div className="weather-app">
+                    <div className="app-header">
+                        <div className="app-title">WeatherSphere</div>
+                        <button className="refresh-btn" onClick={() => fetchWeatherData(weatherData?.current.name || '')}>
+                            🔄
+                        </button>
+                    </div>
+
+                    <form className="search-container" onSubmit={handleSearch}>
+                        <input
+                            type="text"
+                            className="search-input"
+                            placeholder="Search city..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                        />
+                        <button type="submit" className="search-btn">Search</button>
+                    </form>
+
+                    {loading && (
+                        <div className="loading">
+                            <div className="spinner"></div>
+                            Loading weather data...
+                        </div>
+                    )}
+
+                    {error && (
+                        <div className="error-message">
+                            ⚠️ {error}
+                        </div>
+                    )}
+
+                    {!loading && !error && weatherData && (
+                        <>
+                            <div className="current-weather">
+                                <div className="location">{weatherData.current.name}, {weatherData.current.sys.country}</div>
+                                <div className="date-time">{formatDate(weatherData.current.dt)} • {formatTime(weatherData.current.dt)}</div>
+                                
+                                <div className="weather-icon">
+                                    {getWeatherIcon(weatherData.current.weather[0].icon)}
+                                </div>
+                                
+                                <div className="temperature">
+                                    {Math.round(weatherData.current.main.temp)}
+                                    <span>°{unit === 'metric' ? 'C' : 'F'}</span>
+                                </div>
+                                
+                                <div className="weather-description">
+                                    {weatherData.current.weather[0].description}
+                                </div>
+                                
+                                <div className="weather-details">
+                                    <div className="detail-item">
+                                        <div className="detail-label">Feels Like</div>
+                                        <div className="detail-value">
+                                            {Math.round(weatherData.current.main.feels_like)}°
+                                        </div>
+                                    </div>
+                                    <div className="detail-item">
+                                        <div className="detail-label">Humidity</div>
+                                        <div className="detail-value">
+                                            {weatherData.current.main.humidity}%
+                                        </div>
+                                    </div>
+                                    <div className="detail-item">
+                                        <div className="detail-label">Wind</div>
+                                        <div className="detail-value">
+                                            {weatherData.current.wind.speed} {unit === 'metric' ? 'm/s' : 'mph'}
+                                        </div>
+                                    </div>
+                                    <div className="detail-item">
+                                        <div className="detail-label">Pressure</div>
+                                        <div className="detail-value">
+                                            {weatherData.current.main.pressure} hPa
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="forecast-container">
+                                <div className="section-title">5-Day Forecast</div>
+                                <div className="forecast-list">
+                                    {weatherData.forecast.list.filter((item, index) => index % 8 === 0).map((item) => (
+                                        <div key={item.dt} className="forecast-item">
+                                            <div className="forecast-time">{formatDate(item.dt)}</div>
+                                            <div className="forecast-icon">
+                                                {getWeatherIcon(item.weather[0].icon)}
+                                            </div>
+                                            <div className="forecast-temp">
+                                                {Math.round(item.main.temp)}°
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </>
+                    )}
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<WeatherApp />);
+    </script>
+</body>
+</html>
